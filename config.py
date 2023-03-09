@@ -2,7 +2,7 @@ import cv2
 
 #Arquivo
 PATH = 'data/images/'
-FILE = 'voluspa'
+FILE = 'poster'
 FORMAT = '.jpg'
 
 #Língua
