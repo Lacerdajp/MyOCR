@@ -1,10 +1,6 @@
 import cv2
 
-#Língua
 LANG = 'por'
-
-
-
 
 ERODE_X = 2
 ERODE_Y = 2

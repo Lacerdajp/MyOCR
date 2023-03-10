@@ -14,29 +14,47 @@ def mostrar(image, min=10, max=10):
     plt.show()
 
 
-def lerImagem(arquivo="data\images\poster.jpg"):
+def lerImagem(arquivo="data\images\Biblia.jpg"):
     return cv2.imread(arquivo)
 
 ######################################################################################
 # Pré-processamento
 
-# def scaleOpt(sizeMethod):
-#     if sizeMethod == 1:
-#         scale_num = int(input("Em quantas vezes você deseja modificar a imagem?\n"))
-#         imgScaled = (imagem.size[0] * scale_num, imagem.size[1] * scale_num)
-#         imgResize = imagem.resize(imgScaled)
-#         imgResize.show()
-#     elif sizeMethod == 2:
-#         weight_resize, height_resize = int(input("\nLargura: ")), int(input("\nAltura: "))
-#         imgResize = imagem.resize((weight_resize, height_resize))
-#         imgResize.show()
-def escalaCinza(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def corroerImg(image, iterations=1):
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (config.ERODE_X, config.ERODE_Y))
+    return cv2.erode(image, kernel, iterations=iterations)
+
+
+def dilatarImg(image, iterations=1):
+    kernel = cv2.getStructuringElement( cv2.MORPH_RECT, (config.DILATE_X,config.DILATE_Y))
+    return cv2.dilate(image, kernel, iterations=iterations)
+
+
+
+def pegarString(image):
+    return pytesseract.image_to_string(image=image, lang=config.LANG)
+
+
+def pegarContorno(image):
+    contours, hierarchy = cv2.findContours(
+        image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+    return contours, hierarchy
+
+
+def desenharContorno(image, contours):
+    return cv2.drawContours(image, contours, -1, (255, 0, 0), 3)
+def flipHorizontal(image):
+        return cv2.flip(image,0)
+
+def verticalFlp(image):
+        return cv2.flip(image,1)
+
 
 
 def gaussiano(image, gaussian_a=15, gaussian_b=15):
     if (gaussian_a % 2 == 0) or (gaussian_b % 2 == 0):
-        raise Exception("Config arguments must be odd.")
+        raise Exception("O argumento deve ser impar")
     return cv2.GaussianBlur(image, (gaussian_a, gaussian_b), 0)
 
 
@@ -50,12 +68,6 @@ def removerRuido(image, blur_strength=9):
 
 def thresholding(image):
     return cv2.threshold(image, 0, 50, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-
-
-def filtroCanny(image, thr1=100, thr2=100):
-    return cv2.Canny(image, thr1, thr2)
-
-
 def pegarDados(image):
     return pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, lang='por')
 
@@ -84,31 +96,23 @@ def palavraBlocoImg(image, rgb=(0, 0, 0), img=None):
             img = cv2.rectangle(img, (x, y), (x + w, y + h), rgb, 4)
     return img
 
+def filtroCanny(image, thr1=100, thr2=100):
+    return cv2.Canny(image, thr1, thr2)
+def rotate90(image):
+    return cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
 
-def corroerImg(image, iterations=1):
-    kernel = cv2.getStructuringElement(
-        cv2.MORPH_RECT, (config.ERODE_X, config.ERODE_Y))
-    return cv2.erode(image, kernel, iterations=iterations)
+def rotate180(image):
+    return cv2.rotate(image, cv2.ROTATE_180)
 
-
-def dilatarImg(image, iterations=1):
-    kernel = cv2.getStructuringElement( cv2.MORPH_RECT, (config.DILATE_X,config.DILATE_Y))
-    return cv2.dilate(image, kernel, iterations=iterations)
-
-
-
-def pegarString(image):
-    return pytesseract.image_to_string(image=image, lang=config.LANG)
+def rotate270(image):
+    return cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+def escalaCinza(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
-def pegarContorno(image):
-    contours, hierarchy = cv2.findContours(
-        image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-    return contours, hierarchy
 
 
-def desenharContorno(image, contours):
-    return cv2.drawContours(image, contours, -1, (255, 0, 0), 3)
+
 
 # ----------------------------------------OCR
 
@@ -125,18 +129,19 @@ def ocr(image):
 def removerLetraSolo(string: str, keep_e=False, keep_a=False, keep_o=False):
     if keep_e and keep_a and keep_o:
         return re.sub(r"\b(?![eEéÉaAàÀoO]\b)\w\b", "", string)
-    elif keep_e and keep_o:
-        return re.sub(r"\b(?![eEéÉoO]\b)\w\b", "", string)
-    elif keep_a and keep_o:
-        return re.sub(r"\b(?![aAàÀoO]\b)\w\b", "", string)
     elif keep_e and keep_a:
         return re.sub(r"\b(?![eEéÉaAàÀ]\b)\w\b", "", string)
     elif keep_e:
         return re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
-    elif keep_a:
-        return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
+    elif keep_e and keep_o:
+        return re.sub(r"\b(?![oOeEéÉ]\b)\w\b", "", string)
+    elif keep_a and keep_o:
+        return re.sub(r"\b(?![oOaAàÀ]\b)\w\b", "", string)
     elif keep_o:
         return re.sub(r"\b(?![oO]\b)\w\b", "", string)
+    elif keep_a:
+        return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
+
     else:
         return re.sub(r"\b\w{1}\b\s*", "", string)
 
