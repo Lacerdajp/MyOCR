@@ -113,8 +113,8 @@ def escalaCinza(image):
 
 
 
-
-# ----------------------------------------OCR
+######################################################################################
+# OCR
 
 
 def ocr(image):
@@ -122,8 +122,8 @@ def ocr(image):
         return pytesseract.image_to_string(image, lang=config.LANG, config=config.CUSTOM_CONFIG)
     except:
         return pytesseract.image_to_string(image, lang=config.LANG)
-
-# ----------------------------------------POSTPROCESSING
+######################################################################################
+#Pos processamento
 
 
 def removerLetraSolo(string: str, keep_e=False, keep_a=False, keep_o=False):
